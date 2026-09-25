@@ -4,10 +4,10 @@ const parser = new Parser()
 const RESERVED = new Set(['x', 'y', 't', 'pi', 'e', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round', 'min', 'max', 'sinh', 'cosh', 'tanh'])
 
 export const OBJECT_TYPES = {
-  cartesian2d: { label: '2D 笛卡尔', short: 'y = f(x)' },
-  parametric2d: { label: '2D 参数曲线', short: 'x(t), y(t)' },
-  surface3d: { label: '3D 曲面', short: 'z = f(x, y)' },
-  parametric3d: { label: '3D 参数曲线', short: 'x(t), y(t), z(t)' },
+  cartesian2d: { label: '二维函数图像', short: 'y = f(x)' },
+  parametric2d: { label: '二维参数曲线', short: 'x(t), y(t)' },
+  surface3d: { label: '三维曲面', short: 'z = f(x, y)' },
+  parametric3d: { label: '三维参数曲线', short: 'x(t), y(t), z(t)' },
 }
 
 export const PRESETS = {
