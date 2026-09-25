@@ -11,10 +11,10 @@ export const OBJECT_TYPES = {
 }
 
 export const PRESETS = {
-  academic: { label: 'Academic Print', background: '#ffffff', paper: '#ffffff', text: '#26364a', grid: '#d7dee7', color: '#3157b7', font: 13, lineWidth: 3, transparent: false },
-  light: { label: 'Obsidian Light', background: '#f7f8fa', paper: '#f7f8fa', text: '#293241', grid: '#d7dce3', color: '#3157b7', font: 13, lineWidth: 3, transparent: false },
-  dark: { label: 'Obsidian Dark', background: '#20242b', paper: '#20242b', text: '#e7ebf0', grid: '#454c58', color: '#71a7ff', font: 13, lineWidth: 3, transparent: false },
-  minimal: { label: 'Minimal', background: '#ffffff', paper: '#ffffff', text: '#293241', grid: '#ffffff', color: '#26364a', font: 13, lineWidth: 3, transparent: false },
+  academic: { label: '学术印刷', background: '#ffffff', paper: '#ffffff', text: '#26364a', grid: '#d7dee7', color: '#3157b7', font: 13, lineWidth: 3, transparent: false },
+  light: { label: 'Obsidian 浅色', background: '#f7f8fa', paper: '#f7f8fa', text: '#293241', grid: '#d7dce3', color: '#3157b7', font: 13, lineWidth: 3, transparent: false },
+  dark: { label: 'Obsidian 深色', background: '#20242b', paper: '#20242b', text: '#e7ebf0', grid: '#454c58', color: '#71a7ff', font: 13, lineWidth: 3, transparent: false },
+  minimal: { label: '极简', background: '#ffffff', paper: '#ffffff', text: '#293241', grid: '#ffffff', color: '#26364a', font: 13, lineWidth: 3, transparent: false },
 }
 
 export const EXAMPLES = [

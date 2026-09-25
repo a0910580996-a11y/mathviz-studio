@@ -20,6 +20,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid #6d8df0; outline-
 .editor-panel, .inspector-panel { overflow-y: auto; }
 .panel-head { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--line); }
 .section-kicker { color: #65758a; font-size: 12px; font-weight: 750; letter-spacing: .05em; }
+.quick-guide { display: grid; gap: 3px; margin: 10px 12px 0; padding: 9px 10px; color: #5e7085; background: #f5f7ff; border: 1px solid #e2e7fb; border-radius: 7px; font-size: 10px; line-height: 1.4; }
+.quick-guide strong { color: #2d4aa0; font-size: 11px; }
 .icon-button { width: 28px; height: 28px; display: grid; place-items: center; color: #8796a7; background: #f1f4f7; border-radius: 6px; cursor: pointer; }
 .icon-button:hover { color: var(--blue); background: var(--blue-soft); }
 .object-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px; border-bottom: 1px solid var(--line); }
