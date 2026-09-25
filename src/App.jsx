@@ -26,7 +26,7 @@ function EditorPanel({ objects, object, activeId, onSelect, onChange, onLoadExam
   const variables = object.type.includes('parametric') ? ['t'] : object.type === 'surface3d' ? ['x', 'y'] : ['x']
   const expressions = object.type === 'cartesian2d' ? [object.expressions.y] : object.type === 'surface3d' ? [object.expressions.z] : Object.values(object.expressions)
   const parameterKeys = detectParameters(expressions, variables)
-  const updateExpression = (key, value) => onChange({ ...object, id: 'custom', name: object.type === 'surface3d' ? '自定义曲面' : object.type.includes('parametric') ? '自定义参数曲线' : '自定义函数', expressions: { ...object.expressions, [key]: value } })
+  const updateExpression = (key, value) => onChange({ ...object, id: object.id, name: object.type === 'surface3d' ? '自定义曲面' : object.type.includes('parametric') ? '自定义参数曲线' : '自定义函数', expressions: { ...object.expressions, [key]: value } })
   const switchType = (type) => onChange({ ...objectForType(type, objects.findIndex((item) => item.id === object.id)), id: object.id, color: object.color })
   return <aside className="editor-panel">
     <div className="panel-head"><span className="section-kicker">数学对象</span><button className="icon-button" title="新建对象" onClick={onNew}><X size={16} /></button></div>
