@@ -155,5 +155,27 @@ export function formulaText(object) {
   return `z = ${expressions.z}`
 }
 
+const PYTHON_FUNCTIONS = { sin: 'np.sin', cos: 'np.cos', tan: 'np.tan', asin: 'np.arcsin', acos: 'np.arccos', atan: 'np.arctan', exp: 'np.exp', log: 'np.log', sqrt: 'np.sqrt', abs: 'np.abs', ceil: 'np.ceil', floor: 'np.floor', sinh: 'np.sinh', cosh: 'np.cosh', tanh: 'np.tanh' }
+export function pythonExpression(expression) {
+  let source = normalizeExpression(expression).replace(/\^/g, '**')
+  for (const [name, replacement] of Object.entries(PYTHON_FUNCTIONS)) source = source.replace(new RegExp(`\\b${name}\\b`, 'g'), replacement)
+  return source.replace(/\bpi\b/g, 'np.pi').replace(/\be\b/g, 'np.e')
+}
+
+export function generatePythonCode(object) {
+  const parameters = Object.entries(object.parameters || {}).map(([key, item]) => `${key} = ${typeof item === 'number' ? item : item.value}`).join('\n') || '# 本图没有自由参数'
+  const header = `import numpy as np\nimport plotly.graph_objects as go\n\n# 自由参数\n${parameters}`
+  const filename = `${String(object.id || 'mathviz-figure').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-|-$/g, '') || 'mathviz-figure'}.html`
+  const openResult = `fig.write_html(${JSON.stringify(filename)}, auto_open=True)`
+  if (object.type === 'cartesian2d') return `${header}\n\n# 数学表达式\nx = np.linspace(${object.range.x[0]}, ${object.range.x[1]}, ${object.density * 3})\ny = ${pythonExpression(object.expressions.y)}\n\n# 绘制二维函数\nfig = go.Figure(go.Scatter(x=x, y=y, mode='lines', name=${JSON.stringify(object.name || '函数')}))\nfig.update_layout(title=${JSON.stringify(object.title || object.name || '')}, xaxis_title=${JSON.stringify(object.xLabel || 'x')}, yaxis_title=${JSON.stringify(object.yLabel || 'y')})\n${openResult}`
+  if (object.type === 'surface3d') return `${header}\n\n# 生成曲面数据\nx = np.linspace(${object.range.x[0]}, ${object.range.x[1]}, ${object.density})\ny = np.linspace(${object.range.y[0]}, ${object.range.y[1]}, ${object.density})\nx, y = np.meshgrid(x, y)\nz = ${pythonExpression(object.expressions.z)}\n\n# 绘制三维曲面\nfig = go.Figure(go.Surface(x=x, y=y, z=z, name=${JSON.stringify(object.name || '曲面')}))\nfig.update_layout(title=${JSON.stringify(object.title || object.name || '')}, scene=dict(xaxis_title=${JSON.stringify(object.xLabel || 'x')}, yaxis_title=${JSON.stringify(object.yLabel || 'y')}, zaxis_title=${JSON.stringify(object.zLabel || 'z')}))\n${openResult}`
+  const expression = object.expressions
+  const variable = object.type.includes('3d') ? 't' : 't'
+  const values = Object.entries(expression).map(([axis, value]) => `${axis} = ${pythonExpression(value)}`).join('\n')
+  const trace = object.type === 'parametric3d' ? `go.Scatter3d(x=x, y=y, z=z, mode='lines', name=${JSON.stringify(object.name || '参数曲线')})` : `go.Scatter(x=x, y=y, mode='lines', name=${JSON.stringify(object.name || '参数曲线')})`
+  const layout = object.type === 'parametric3d' ? `scene=dict(xaxis_title=${JSON.stringify(object.xLabel || 'x')}, yaxis_title=${JSON.stringify(object.yLabel || 'y')}, zaxis_title=${JSON.stringify(object.zLabel || 'z')})` : `xaxis_title=${JSON.stringify(object.xLabel || 'x')}, yaxis_title=${JSON.stringify(object.yLabel || 'y')}`
+  return `${header}\n\n# 参数曲线数据\n${variable} = np.linspace(${object.range.t[0]}, ${object.range.t[1]}, ${object.density * 3})\n${values}\n\n# 绘制参数曲线\nfig = go.Figure(${trace})\nfig.update_layout(title=${JSON.stringify(object.title || object.name || '')}, ${layout})\n${openResult}`
+}
+
 export function encodeState(object) { return btoa(unescape(encodeURIComponent(JSON.stringify(object)))) }
 export function decodeState(value) { return JSON.parse(decodeURIComponent(escape(atob(value)))) }

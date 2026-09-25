@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildPlotData, compileExpression, decodeState, detectParameters, domainViewRange, encodeState, EXAMPLES, objectForType, objectFromExample, parseDomain } from '../src/graphs.js'
+import { buildPlotData, compileExpression, decodeState, detectParameters, domainViewRange, encodeState, EXAMPLES, generatePythonCode, objectForType, objectFromExample, parseDomain, pythonExpression } from '../src/graphs.js'
 
 test('V1 覆盖四种数学对象类型和示例库', () => {
   assert.deepEqual(new Set(EXAMPLES.map((item) => item.type)), new Set(['cartesian2d', 'surface3d', 'parametric3d']))
@@ -58,4 +58,14 @@ test('当前对象可以序列化到分享状态并恢复', () => {
   const restored = decodeState(encodeState(object))
   assert.equal(restored.type, 'surface3d')
   assert.equal(restored.expressions.z, 'x^2 - y^2')
+})
+
+test('导出的 Python 代码覆盖常见写法且没有错误缩进', () => {
+  const surface = generatePythonCode(objectFromExample(EXAMPLES.find((item) => item.id === 'saddle')))
+  const parameterSurface = generatePythonCode(objectFromExample(EXAMPLES.find((item) => item.id === 'parameter-surface')))
+  assert.match(surface, /z = x\*\*2 - y\*\*2/)
+  assert.doesNotMatch(surface, /\n {4}# 本图没有自由参数/)
+  assert.match(parameterSurface, /a = 1/)
+  assert.match(parameterSurface, /z = a\*x\*\*2 \+ b\*y\*\*2/)
+  assert.match(pythonExpression('\\frac{1}{\\sqrt{2\\pi}}e^{-x^2/2}'), /np\.sqrt\(2\*np\.pi\).*np\.e\*\*\(-x\*\*2\/2\)/)
 })
