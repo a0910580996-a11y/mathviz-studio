@@ -29,12 +29,13 @@ export const EXAMPLES = [
   { id: 'gaussian-surface', name: 'Gaussian surface', type: 'surface3d', expression: 'exp(-(x^2+y^2))', subtitle: '二维高斯曲面', range: { x: [-3, 3], y: [-3, 3] } },
   { id: 'helix', name: '三维螺旋线', type: 'parametric3d', expressions: { x: 'cos(t)', y: 'sin(t)', z: '0.2*t' }, subtitle: '参数曲线', range: { t: [0, 31.4] } },
   { id: 'parameter-surface', name: '参数曲面', type: 'surface3d', expression: 'a*x^2 + b*y^2', subtitle: '拖动 a、b 观察曲率', parameters: { a: { value: 1, min: 0.1, max: 3, step: 0.1 }, b: { value: 0.5, min: 0.1, max: 3, step: 0.1 } }, range: { x: [-3, 3], y: [-3, 3] } },
+  { id: 'power-saddle', name: '可变系数与次方曲面', type: 'surface3d', expression: 'a*x^p - b*y^q', subtitle: '拖动 a、b、p、q 改变形状', parameters: { a: { value: 1, min: -3, max: 3, step: 0.1 }, b: { value: 1, min: -3, max: 3, step: 0.1 }, p: { value: 2, min: 0.2, max: 5, step: 0.1 }, q: { value: 2, min: 0.2, max: 5, step: 0.1 } }, range: { x: [-3, 3], y: [-3, 3] } },
 ]
 
 export function normalizeExpression(input = '') {
   let source = String(input).trim()
   for (let pass = 0; pass < 4; pass += 1) source = source.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '(($1)/($2))').replace(/\\sqrt\s*\{([^{}]+)\}/g, 'sqrt($1)')
-  const normalized = source.replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\mathrm\s*\{e\}/g, 'e').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs|mu|sigma|alpha|beta|gamma)/g, '$1').replace(/([a-zA-Z0-9.)]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+)/g, (_, base, power) => `${base}^(${[...power].map((digit) => SUPERSCRIPT_DIGITS[digit]).join('')})`)
+  const normalized = source.replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\mathrm\s*\{e\}/g, 'e').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs|mu|sigma|alpha|beta|gamma)/g, '$1').replace(/([a-zA-Z0-9.)]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+)/g, (_, base, power) => `${base}^(${[...power].map((digit) => SUPERSCRIPT_DIGITS[digit]).join('')})`).replace(/(?<![a-zA-Z])([a-zA-Z])\s*(?=[xyz]\b)/g, '$1*')
   return normalized.replace(/(\d|\)|\bpi\b|\be\b)(?=\s*[a-zA-Z_(])/g, '$1*').replace(/([a-zA-Z_]\w*)(?=\s*\()/g, (name) => FUNCTIONS.has(name) ? name : `${name}*`)
 }
 
@@ -64,7 +65,7 @@ export function detectParameters(expressions, variables) {
   return [...names].sort()
 }
 
-export function defaultParameter(key) { return { value: 1, min: -5, max: 5, step: 0.1, key } }
+export function defaultParameter(key) { return /^[pqn]$/i.test(key) ? { value: 2, min: 0.2, max: 5, step: 0.1, key } : { value: 1, min: -5, max: 5, step: 0.1, key } }
 function sample(start, end, segments) { return Array.from({ length: segments + 1 }, (_, index) => start + ((end - start) * index) / segments) }
 function finite(value) { return typeof value === 'number' && Number.isFinite(value) ? value : null }
 function endpointValue(input) {

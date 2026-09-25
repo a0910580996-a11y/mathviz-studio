@@ -17,6 +17,8 @@ test('安全解析支持常见数学表达式和自由参数识别', () => {
   assert.ok(Math.abs(compileExpression('\\frac{1}{\\sqrt{2\\pi}}e^{-x^2/2}', ['x']).compiled.evaluate({ x: 0, pi: Math.PI, e: Math.E }) - 1 / Math.sqrt(2 * Math.PI)) < 1e-10)
   assert.equal(buildPlotData(objectFromExample({ id: 'pi', name: '圆周率', type: 'cartesian2d', expression: '2π', range: { x: [-1, 1] } }))[0].y[0], 2 * Math.PI)
   assert.deepEqual(detectParameters(['a*x^2 + b*y^2 + c'], ['x', 'y']), ['a', 'b', 'c'])
+  assert.equal(compileExpression('a x^p - b y^q', ['x', 'y', 'a', 'b', 'p', 'q']).compiled.evaluate({ a: 2, b: 1, p: 2, q: 2, x: 3, y: 1 }), 17)
+  assert.deepEqual(detectParameters(['a x^p - b y^q'], ['x', 'y']), ['a', 'b', 'p', 'q'])
   assert.throws(() => compileExpression('process.exit()', ['x']), /未识别|无法解析/)
 })
 
