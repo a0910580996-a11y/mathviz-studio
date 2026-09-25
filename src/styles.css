@@ -22,6 +22,20 @@ button:focus-visible, input:focus-visible { outline: 2px solid #6d8df0; outline-
 .section-kicker { color: #65758a; font-size: 12px; font-weight: 750; letter-spacing: .05em; }
 .quick-guide { display: grid; gap: 3px; margin: 10px 12px 0; padding: 9px 10px; color: #5e7085; background: #f5f7ff; border: 1px solid #e2e7fb; border-radius: 7px; font-size: 10px; line-height: 1.4; }
 .quick-guide strong { color: #2d4aa0; font-size: 11px; }
+.object-list { padding: 10px 12px 4px; border-bottom: 1px solid var(--line); }
+.object-row { display: grid; grid-template-columns: 1fr 28px 28px; gap: 2px; align-items: center; min-height: 41px; padding: 2px 3px; border-radius: 7px; }
+.object-row.active { background: #f4f5f3; }
+.object-row-main { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 6px 4px; color: #56616a; background: transparent; text-align: left; cursor: pointer; }
+.object-row-main:hover { color: #343a3e; }
+.object-row-main strong, .object-row-main small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.object-row-main strong { color: #4a5359; font-size: 11px; }
+.object-row-main small { max-width: 178px; margin-top: 2px; color: #8a9398; font-family: "Cascadia Code", Consolas, monospace; font-size: 9px; }
+.object-color { width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; }
+.row-icon { width: 26px; height: 26px; display: grid; place-items: center; color: #8a9398; background: transparent; border-radius: 5px; cursor: pointer; }
+.row-icon:hover { color: #596267; background: #e9ece9; }
+.row-icon.danger:hover { color: #a86d70; background: #f5eaea; }
+.add-object-button { width: 100%; display: inline-flex; align-items: center; gap: 8px; padding: 8px 5px; color: #788287; background: transparent; font-size: 10px; cursor: pointer; }
+.add-object-button:hover { color: #596267; }
 .icon-button { width: 28px; height: 28px; display: grid; place-items: center; color: #8796a7; background: #f1f4f7; border-radius: 6px; cursor: pointer; }
 .icon-button:hover { color: var(--blue); background: var(--blue-soft); }
 .object-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px; border-bottom: 1px solid var(--line); }

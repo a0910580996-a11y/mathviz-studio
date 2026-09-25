@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildPlotData, compileExpression, decodeState, detectParameters, encodeState, EXAMPLES, objectFromExample } from '../src/graphs.js'
+import { buildPlotData, compileExpression, decodeState, detectParameters, encodeState, EXAMPLES, objectForType, objectFromExample } from '../src/graphs.js'
 
 test('V1 覆盖四种数学对象类型和示例库', () => {
   assert.deepEqual(new Set(EXAMPLES.map((item) => item.type)), new Set(['cartesian2d', 'surface3d', 'parametric3d']))
@@ -13,6 +13,7 @@ test('安全解析支持常见数学表达式和自由参数识别', () => {
   assert.equal(compileExpression('2x', ['x']).compiled.evaluate({ x: 3 }), 6)
   assert.equal(compileExpression('2(x + 1)', ['x']).compiled.evaluate({ x: 3 }), 8)
   assert.equal(compileExpression('x²', ['x']).compiled.evaluate({ x: 3 }), 9)
+  assert.equal(compileExpression('\\frac{1}{1+x²}', ['x']).compiled.evaluate({ x: 1 }), 0.5)
   assert.equal(buildPlotData(objectFromExample({ id: 'pi', name: '圆周率', type: 'cartesian2d', expression: '2π', range: { x: [-1, 1] } }))[0].y[0], 2 * Math.PI)
   assert.deepEqual(detectParameters(['a*x^2 + b*y^2 + c'], ['x', 'y']), ['a', 'b', 'c'])
   assert.throws(() => compileExpression('process.exit()', ['x']), /未识别|无法解析/)
@@ -24,6 +25,14 @@ test('示例都能生成 Plotly 数据', () => {
     assert.ok(traces.length > 0, `${example.name} 没有轨迹`)
     assert.ok(['scatter', 'scatter3d', 'surface'].includes(traces[0].type))
   }
+})
+
+test('同一工作台可以叠加多个对象并使用不同的柔和颜色', () => {
+  const first = objectForType('cartesian2d', 0)
+  const second = objectForType('cartesian2d', 1)
+  assert.notEqual(first.color, second.color)
+  assert.equal(buildPlotData(first)[0].name, first.name)
+  assert.equal(buildPlotData(second)[0].name, second.name)
 })
 
 test('非法点不会让 1/x 和 sqrt(x) 整页崩溃', () => {

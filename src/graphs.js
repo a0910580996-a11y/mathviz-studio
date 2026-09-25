@@ -4,6 +4,7 @@ const parser = new Parser()
 const RESERVED = new Set(['x', 'y', 't', 'pi', 'e', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round', 'min', 'max', 'sinh', 'cosh', 'tanh'])
 const FUNCTIONS = new Set(['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round', 'min', 'max', 'sinh', 'cosh', 'tanh'])
 const SUPERSCRIPT_DIGITS = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁺': '+', '⁻': '-' }
+export const FUNCTION_COLORS = ['#c58f98', '#7faa9b', '#c5a45d', '#8ea4bb', '#a58fac', '#b8896f']
 
 export const OBJECT_TYPES = {
   cartesian2d: { label: '二维函数图像', short: 'y = f(x)' },
@@ -13,10 +14,10 @@ export const OBJECT_TYPES = {
 }
 
 export const PRESETS = {
-  academic: { label: '学术印刷', background: '#ffffff', paper: '#ffffff', text: '#26364a', grid: '#d7dee7', color: '#3157b7', font: 13, lineWidth: 3, transparent: false },
-  light: { label: 'Obsidian 浅色', background: '#f7f8fa', paper: '#f7f8fa', text: '#293241', grid: '#d7dce3', color: '#3157b7', font: 13, lineWidth: 3, transparent: false },
-  dark: { label: 'Obsidian 深色', background: '#20242b', paper: '#20242b', text: '#e7ebf0', grid: '#454c58', color: '#71a7ff', font: 13, lineWidth: 3, transparent: false },
-  minimal: { label: '极简', background: '#ffffff', paper: '#ffffff', text: '#293241', grid: '#ffffff', color: '#26364a', font: 13, lineWidth: 3, transparent: false },
+  academic: { label: '学术印刷', background: '#fcfcfb', paper: '#fcfcfb', text: '#454a50', grid: '#d9ddda', color: FUNCTION_COLORS[0], font: 13, lineWidth: 2.5, transparent: false },
+  light: { label: 'Obsidian 浅色', background: '#f8f9f7', paper: '#f8f9f7', text: '#4d5358', grid: '#dfe2df', color: FUNCTION_COLORS[0], font: 13, lineWidth: 2.5, transparent: false },
+  dark: { label: 'Obsidian 深色', background: '#282b2e', paper: '#282b2e', text: '#e4e5e3', grid: '#55595c', color: '#cda4aa', font: 13, lineWidth: 2.5, transparent: false },
+  minimal: { label: '极简', background: '#ffffff', paper: '#ffffff', text: '#4d5358', grid: '#ffffff', color: '#737e86', font: 13, lineWidth: 2.5, transparent: false },
 }
 
 export const EXAMPLES = [
@@ -31,7 +32,9 @@ export const EXAMPLES = [
 ]
 
 export function normalizeExpression(input = '') {
-  const normalized = String(input).trim().replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs)/g, '$1').replace(/([a-zA-Z0-9.)]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+)/g, (_, base, power) => `${base}^(${[...power].map((digit) => SUPERSCRIPT_DIGITS[digit]).join('')})`)
+  let source = String(input).trim()
+  for (let pass = 0; pass < 4; pass += 1) source = source.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '(($1)/($2))').replace(/\\sqrt\s*\{([^{}]+)\}/g, 'sqrt($1)')
+  const normalized = source.replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs)/g, '$1').replace(/([a-zA-Z0-9.)]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+)/g, (_, base, power) => `${base}^(${[...power].map((digit) => SUPERSCRIPT_DIGITS[digit]).join('')})`)
   return normalized.replace(/(\d|\)|\bpi\b|\be\b)(?=\s*[a-zA-Z_(])/g, '$1*').replace(/([a-zA-Z_]\w*)(?=\s*\()/g, (name) => FUNCTIONS.has(name) ? name : `${name}*`)
 }
 
@@ -66,7 +69,7 @@ function sample(start, end, segments) { return Array.from({ length: segments + 1
 function finite(value) { return typeof value === 'number' && Number.isFinite(value) ? value : null }
 function lineTrace(x, y, name, color, lineWidth) { return { type: 'scatter', mode: 'lines', x, y, name, connectgaps: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<extra></extra>', line: { color, width: lineWidth } } }
 function curve3dTrace(x, y, z, name, color, lineWidth) { return { type: 'scatter3d', mode: 'lines', x, y, z, name, connectgaps: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<br>z = %{z:.3f}<extra></extra>', line: { color, width: lineWidth } } }
-function surfaceTrace(x, y, z, name, color, showGrid) { return { type: 'surface', x, y, z, name, showscale: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<br>z = %{z:.3f}<extra></extra>', colorscale: [[0, '#dbe7ff'], [0.45, color], [1, '#192d5b']], contours: { x: { show: showGrid, color: 'rgba(255,255,255,.32)', width: 1 }, y: { show: showGrid, color: 'rgba(255,255,255,.32)', width: 1 }, z: { show: false } }, lighting: { ambient: 0.78, diffuse: 0.82, roughness: 0.72, specular: 0.18 } } }
+function surfaceTrace(x, y, z, name, color, showGrid) { return { type: 'surface', x, y, z, name, showscale: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<br>z = %{z:.3f}<extra></extra>', colorscale: [[0, '#f1f0ed'], [0.45, color], [1, '#6d7478']], contours: { x: { show: showGrid, color: 'rgba(255,255,255,.52)', width: 1 }, y: { show: showGrid, color: 'rgba(255,255,255,.52)', width: 1 }, z: { show: false } }, lighting: { ambient: 0.82, diffuse: 0.72, roughness: 0.82, specular: 0.12 } } }
 function evaluate(compiled, scope) { try { return finite(compiled.evaluate({ pi: Math.PI, e: Math.E, ...scope })) } catch { return null } }
 
 export function buildPlotData(object, settings = object) {
@@ -77,18 +80,18 @@ export function buildPlotData(object, settings = object) {
   if (type === 'cartesian2d') {
     const { compiled } = compileExpression(expressions.y || expressions.expression || expressions, ['x', ...parameterKeys])
     const x = sample(range.x[0], range.x[1], segments)
-    return [lineTrace(x, x.map((value) => evaluate(compiled, { x: value, ...parameterValues })), 'y = f(x)', color, lineWidth)]
+    return [lineTrace(x, x.map((value) => evaluate(compiled, { x: value, ...parameterValues })), object.name || '函数', color, lineWidth)]
   }
   if (type === 'parametric2d') {
     const xCompiled = compileExpression(expressions.x, ['t', ...parameterKeys]).compiled
     const yCompiled = compileExpression(expressions.y, ['t', ...parameterKeys]).compiled
     const t = sample(range.t[0], range.t[1], segments)
-    return [lineTrace(t.map((value) => evaluate(xCompiled, { t: value, ...parameterValues })), t.map((value) => evaluate(yCompiled, { t: value, ...parameterValues })), '参数曲线', color, lineWidth)]
+    return [lineTrace(t.map((value) => evaluate(xCompiled, { t: value, ...parameterValues })), t.map((value) => evaluate(yCompiled, { t: value, ...parameterValues })), object.name || '参数曲线', color, lineWidth)]
   }
   if (type === 'parametric3d') {
     const compiled = ['x', 'y', 'z'].map((axis) => compileExpression(expressions[axis], ['t', ...parameterKeys]).compiled)
     const t = sample(range.t[0], range.t[1], segments)
-    return [curve3dTrace(...compiled.map((item) => t.map((value) => evaluate(item, { t: value, ...parameterValues }))), '参数曲线', color, lineWidth)]
+    return [curve3dTrace(...compiled.map((item) => t.map((value) => evaluate(item, { t: value, ...parameterValues }))), object.name || '参数曲线', color, lineWidth)]
   }
   const compiled = compileExpression(expressions.z || expressions.expression || expressions, ['x', 'y', ...parameterKeys]).compiled
   const axisX = sample(range.x[0], range.x[1], Math.min(80, density))
@@ -96,13 +99,18 @@ export function buildPlotData(object, settings = object) {
   const x = axisY.map(() => [...axisX])
   const y = axisY.map((value) => axisX.map(() => value))
   const z = axisY.map((yValue) => axisX.map((xValue) => evaluate(compiled, { x: xValue, y: yValue, ...parameterValues })))
-  return [surfaceTrace(x, y, z, 'z = f(x, y)', color, showGrid)]
+  return [surfaceTrace(x, y, z, object.name || '曲面', color, showGrid)]
 }
 
-export function objectFromExample(example) {
+export function objectFromExample(example, color = FUNCTION_COLORS[0]) {
   const expressions = example.type === 'cartesian2d' ? { y: example.expression } : example.type === 'surface3d' ? { z: example.expression } : example.expressions
   const parameters = Object.fromEntries(Object.entries(example.parameters || {}).map(([key, value]) => [key, { key, ...value }]))
-  return { id: example.id, name: example.name, subtitle: example.subtitle, type: example.type, expressions, parameters, range: example.range, density: 42, color: PRESETS.academic.color, lineWidth: 3, showGrid: true, showAxes: true, preset: 'academic', title: '' }
+  return { id: example.id, name: example.name, subtitle: example.subtitle, type: example.type, expressions, parameters, range: example.range, density: 42, color, lineWidth: 2.5, showGrid: true, showAxes: true, visible: true, preset: 'academic', title: '' }
+}
+
+export function objectForType(type, index = 0) {
+  const example = type === 'cartesian2d' ? EXAMPLES.find((item) => item.id === 'sin') : type === 'parametric2d' ? { id: 'parametric', name: '新参数曲线', type, expressions: { x: 'cos(t)', y: 'sin(t)' }, subtitle: '参数曲线', range: { t: [0, 31.4] } } : type === 'surface3d' ? EXAMPLES.find((item) => item.id === 'saddle') : EXAMPLES.find((item) => item.id === 'helix')
+  return objectFromExample({ ...example, type }, FUNCTION_COLORS[index % FUNCTION_COLORS.length])
 }
 
 export function formulaText(object) {
