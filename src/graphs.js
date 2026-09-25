@@ -2,6 +2,7 @@ import { Parser } from 'expr-eval'
 
 const parser = new Parser()
 const RESERVED = new Set(['x', 'y', 't', 'pi', 'e', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round', 'min', 'max', 'sinh', 'cosh', 'tanh'])
+const FUNCTIONS = new Set(['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round', 'min', 'max', 'sinh', 'cosh', 'tanh'])
 
 export const OBJECT_TYPES = {
   cartesian2d: { label: '二维函数图像', short: 'y = f(x)' },
@@ -29,7 +30,8 @@ export const EXAMPLES = [
 ]
 
 export function normalizeExpression(input = '') {
-  return String(input).trim().replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs)/g, '$1')
+  const normalized = String(input).trim().replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs)/g, '$1')
+  return normalized.replace(/(\d|\)|\bpi\b|\be\b)(?=\s*[a-zA-Z_(])/g, '$1*').replace(/([a-zA-Z_]\w*)(?=\s*\()/g, (name) => FUNCTIONS.has(name) ? name : `${name}*`)
 }
 
 export function compileExpression(expression, variables = []) {
@@ -42,7 +44,7 @@ export function compileExpression(expression, variables = []) {
     if (unknown.length) throw new Error(`包含未识别的符号：${unknown.join('、')}`)
     return { normalized, compiled: node }
   } catch (error) {
-    throw new Error(error.message || '表达式无法解析。')
+    throw new Error(error.message?.startsWith('包含未识别') ? error.message : `表达式无法解析：${error.message || '请检查括号和运算符。'}`)
   }
 }
 
