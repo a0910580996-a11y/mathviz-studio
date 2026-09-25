@@ -75,6 +75,7 @@ input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; appearanc
 .primary-button:hover { background: #24479f; }
 .canvas-panel { display: grid; grid-template-rows: 78px minmax(420px, 1fr) 34px; }
 .canvas-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 13px 17px; border-bottom: 1px solid var(--line); }
+.canvas-actions { display: flex; align-items: center; gap: 7px; }
 .formula-block { min-width: 0; }
 .dimension-label { color: #8a98a8; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .formula-block h2 { margin: 4px 0 5px; color: var(--ink); font-size: 16px; line-height: 1.15; }
@@ -82,6 +83,7 @@ input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; appearanc
 .reset-button { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 9px; border: 1px solid var(--line); border-radius: 6px; color: #63758a; background: white; font-size: 10px; cursor: pointer; }
 .reset-button:hover { color: var(--blue); border-color: #aebdf3; }
 .plot-wrap { min-height: 0; position: relative; background: var(--canvas); }
+.export-plot { position: fixed; left: -10000px; top: 0; width: 1400px; height: 900px; pointer-events: none; opacity: 1; }
 .plot, .plot > div, .js-plotly-plot { width: 100% !important; height: 100% !important; }
 .plot-error { height: 100%; display: grid; place-items: center; padding: 30px; background: #fffaf9; }
 .plot-error > div { max-width: 360px; display: grid; gap: 9px; color: #ad4b4b; text-align: center; }
@@ -112,6 +114,7 @@ input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; appearanc
 .color-control .small-input { width: 128px; height: 28px; font-size: 10px; }
 .muted-copy { margin: -3px 0 14px; color: #8a98a6; font-size: 10px; line-height: 1.6; }
 .domain-help { margin: -3px 0 0; color: #929a9f; font-size: 9px; line-height: 1.5; }
+.axis-labels { padding-top: 4px; }
 .export-actions { display: grid; gap: 8px; }
 .snippet-box { display: grid; gap: 5px; margin-top: 13px; padding: 9px; border: 1px solid var(--line); border-radius: 6px; background: #fafbfc; }
 .snippet-box span { color: #94a0ad; font-size: 9px; }

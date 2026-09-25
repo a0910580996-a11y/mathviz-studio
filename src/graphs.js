@@ -139,7 +139,7 @@ export function objectFromExample(example, color = FUNCTION_COLORS[0]) {
   const expressions = example.type === 'cartesian2d' ? { y: example.expression } : example.type === 'surface3d' ? { z: example.expression } : example.expressions
   const parameters = Object.fromEntries(Object.entries(example.parameters || {}).map(([key, value]) => [key, { key, ...value }]))
   const domain = example.domain || (example.type.includes('parametric') ? `[${example.range.t[0]}, ${example.range.t[1]}]` : '(-∞, ∞)')
-  return { id: example.id, name: example.name, subtitle: example.subtitle, type: example.type, expressions, parameters, range: example.range, domain, domainX: example.domainX || '(-∞, ∞)', domainY: example.domainY || '(-∞, ∞)', density: 42, color, lineWidth: 2.5, showGrid: true, showAxes: true, visible: true, preset: 'academic', title: '' }
+  return { id: example.id, name: example.name, subtitle: example.subtitle, type: example.type, expressions, parameters, range: example.range, domain, domainX: example.domainX || '(-∞, ∞)', domainY: example.domainY || '(-∞, ∞)', density: 42, color, lineWidth: 2.5, showGrid: true, showAxes: true, equalAspect: true, visible: true, preset: 'academic', title: '', xLabel: 'x', yLabel: 'y', zLabel: 'z' }
 }
 
 export function objectForType(type, index = 0) {
