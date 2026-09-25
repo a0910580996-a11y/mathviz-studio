@@ -67,7 +67,7 @@ function finite(value) { return typeof value === 'number' && Number.isFinite(val
 function lineTrace(x, y, name, color, lineWidth) { return { type: 'scatter', mode: 'lines', x, y, name, connectgaps: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<extra></extra>', line: { color, width: lineWidth } } }
 function curve3dTrace(x, y, z, name, color, lineWidth) { return { type: 'scatter3d', mode: 'lines', x, y, z, name, connectgaps: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<br>z = %{z:.3f}<extra></extra>', line: { color, width: lineWidth } } }
 function surfaceTrace(x, y, z, name, color, showGrid) { return { type: 'surface', x, y, z, name, showscale: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<br>z = %{z:.3f}<extra></extra>', colorscale: [[0, '#dbe7ff'], [0.45, color], [1, '#192d5b']], contours: { x: { show: showGrid, color: 'rgba(255,255,255,.32)', width: 1 }, y: { show: showGrid, color: 'rgba(255,255,255,.32)', width: 1 }, z: { show: false } }, lighting: { ambient: 0.78, diffuse: 0.82, roughness: 0.72, specular: 0.18 } } }
-function evaluate(compiled, scope) { try { return finite(compiled.evaluate(scope)) } catch { return null } }
+function evaluate(compiled, scope) { try { return finite(compiled.evaluate({ pi: Math.PI, e: Math.E, ...scope })) } catch { return null } }
 
 export function buildPlotData(object, settings = object) {
   const { type, expressions, parameters = {}, range, density = 42, color = PRESETS.academic.color, lineWidth = 3, showGrid = true } = object
