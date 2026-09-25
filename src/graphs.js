@@ -3,6 +3,7 @@ import { Parser } from 'expr-eval'
 const parser = new Parser()
 const RESERVED = new Set(['x', 'y', 't', 'pi', 'e', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round', 'min', 'max', 'sinh', 'cosh', 'tanh'])
 const FUNCTIONS = new Set(['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round', 'min', 'max', 'sinh', 'cosh', 'tanh'])
+const SUPERSCRIPT_DIGITS = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁺': '+', '⁻': '-' }
 
 export const OBJECT_TYPES = {
   cartesian2d: { label: '二维函数图像', short: 'y = f(x)' },
@@ -30,7 +31,7 @@ export const EXAMPLES = [
 ]
 
 export function normalizeExpression(input = '') {
-  const normalized = String(input).trim().replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs)/g, '$1')
+  const normalized = String(input).trim().replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs)/g, '$1').replace(/([a-zA-Z0-9.)]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+)/g, (_, base, power) => `${base}^(${[...power].map((digit) => SUPERSCRIPT_DIGITS[digit]).join('')})`)
   return normalized.replace(/(\d|\)|\bpi\b|\be\b)(?=\s*[a-zA-Z_(])/g, '$1*').replace(/([a-zA-Z_]\w*)(?=\s*\()/g, (name) => FUNCTIONS.has(name) ? name : `${name}*`)
 }
 

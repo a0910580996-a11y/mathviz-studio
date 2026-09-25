@@ -12,6 +12,7 @@ test('安全解析支持常见数学表达式和自由参数识别', () => {
   assert.equal(compileExpression('x^2 - y^2', ['x', 'y']).compiled.evaluate({ x: 2, y: 1 }), 3)
   assert.equal(compileExpression('2x', ['x']).compiled.evaluate({ x: 3 }), 6)
   assert.equal(compileExpression('2(x + 1)', ['x']).compiled.evaluate({ x: 3 }), 8)
+  assert.equal(compileExpression('x²', ['x']).compiled.evaluate({ x: 3 }), 9)
   assert.deepEqual(detectParameters(['a*x^2 + b*y^2 + c'], ['x', 'y']), ['a', 'b', 'c'])
   assert.throws(() => compileExpression('process.exit()', ['x']), /未识别|无法解析/)
 })
