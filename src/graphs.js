@@ -34,7 +34,7 @@ export const EXAMPLES = [
 export function normalizeExpression(input = '') {
   let source = String(input).trim()
   for (let pass = 0; pass < 4; pass += 1) source = source.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '(($1)/($2))').replace(/\\sqrt\s*\{([^{}]+)\}/g, 'sqrt($1)')
-  const normalized = source.replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs)/g, '$1').replace(/([a-zA-Z0-9.)]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+)/g, (_, base, power) => `${base}^(${[...power].map((digit) => SUPERSCRIPT_DIGITS[digit]).join('')})`)
+  const normalized = source.replace(/[−–—]/g, '-').replace(/π/g, 'pi').replace(/√\s*\(/g, 'sqrt(').replace(/√\s*([a-zA-Z0-9.]+)/g, 'sqrt($1)').replace(/\bln\b/g, 'log').replace(/\^\{([^{}]+)\}/g, '^($1)').replace(/\\left|\\right/g, '').replace(/\\cdot/g, '*').replace(/\\mathrm\s*\{e\}/g, 'e').replace(/\\pi/g, 'pi').replace(/\\(sin|cos|tan|exp|ln|log|sqrt|abs|mu|sigma|alpha|beta|gamma)/g, '$1').replace(/([a-zA-Z0-9.)]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+)/g, (_, base, power) => `${base}^(${[...power].map((digit) => SUPERSCRIPT_DIGITS[digit]).join('')})`)
   return normalized.replace(/(\d|\)|\bpi\b|\be\b)(?=\s*[a-zA-Z_(])/g, '$1*').replace(/([a-zA-Z_]\w*)(?=\s*\()/g, (name) => FUNCTIONS.has(name) ? name : `${name}*`)
 }
 
@@ -67,6 +67,37 @@ export function detectParameters(expressions, variables) {
 export function defaultParameter(key) { return { value: 1, min: -5, max: 5, step: 0.1, key } }
 function sample(start, end, segments) { return Array.from({ length: segments + 1 }, (_, index) => start + ((end - start) * index) / segments) }
 function finite(value) { return typeof value === 'number' && Number.isFinite(value) ? value : null }
+function endpointValue(input) {
+  const value = String(input).trim().replace(/∞|\\infty/g, 'inf')
+  if (/^[+]?inf$/i.test(value)) return Infinity
+  if (/^-inf$/i.test(value)) return -Infinity
+  try { return Number(parser.parse(normalizeExpression(value)).evaluate({ pi: Math.PI, e: Math.E })) } catch { return Number.NaN }
+}
+export function parseDomain(input, fallback = [-8, 8]) {
+  const text = String(input || '').trim().replace(/\\left|\\right/g, '').replace(/\\cup/g, '∪').replace(/\s+/g, ' ')
+  if (!text || /全体实数|所有实数|实数范围/.test(text)) return [{ start: -Infinity, end: Infinity, startClosed: false, endClosed: false }]
+  const parts = text.replace(/^[a-zA-Z_]+\s*[∈:]\s*/, '').split(/\s*(?:∪|U)\s*/).filter(Boolean)
+  const intervals = parts.map((part) => {
+    const match = part.match(/^([\[\(])\s*(.*?)\s*,\s*(.*?)\s*([\]\)])$/)
+    if (!match) throw new Error('定义域格式应写成区间，例如：(-∞, 0) ∪ (1, ∞)。')
+    const start = endpointValue(match[2])
+    const end = endpointValue(match[3])
+    if (Number.isNaN(start) || Number.isNaN(end) || start >= end) throw new Error('定义域区间的端点无效，请检查顺序和公式。')
+    return { start, end, startClosed: match[1] === '[', endClosed: match[4] === ']' }
+  })
+  return intervals.length ? intervals : [{ start: fallback[0], end: fallback[1], startClosed: true, endClosed: true }]
+}
+export function domainViewRange(input, fallback = [-8, 8]) {
+  const intervals = parseDomain(input, fallback)
+  const starts = intervals.map((item) => Number.isFinite(item.start) ? item.start : fallback[0])
+  const ends = intervals.map((item) => Number.isFinite(item.end) ? item.end : fallback[1])
+  return [Math.min(...starts), Math.max(...ends)]
+}
+function domainSamples(input, fallback, segments) {
+  const intervals = parseDomain(input, fallback)
+  return intervals.flatMap((item, index) => { const start = Number.isFinite(item.start) ? item.start : fallback[0]; const end = Number.isFinite(item.end) ? item.end : fallback[1]; return [...(index ? [null] : []), ...sample(start, end, Math.max(12, Math.round(segments / Math.max(1, intervals.length))))] })
+}
+function domainContains(value, intervals) { return intervals.some((item) => value >= item.start && value <= item.end) }
 function lineTrace(x, y, name, color, lineWidth) { return { type: 'scatter', mode: 'lines', x, y, name, connectgaps: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<extra></extra>', line: { color, width: lineWidth } } }
 function curve3dTrace(x, y, z, name, color, lineWidth) { return { type: 'scatter3d', mode: 'lines', x, y, z, name, connectgaps: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<br>z = %{z:.3f}<extra></extra>', line: { color, width: lineWidth } } }
 function surfaceTrace(x, y, z, name, color, showGrid) { return { type: 'surface', x, y, z, name, showscale: false, hovertemplate: 'x = %{x:.3f}<br>y = %{y:.3f}<br>z = %{z:.3f}<extra></extra>', colorscale: [[0, '#f1f0ed'], [0.45, color], [1, '#6d7478']], contours: { x: { show: showGrid, color: 'rgba(255,255,255,.52)', width: 1 }, y: { show: showGrid, color: 'rgba(255,255,255,.52)', width: 1 }, z: { show: false } }, lighting: { ambient: 0.82, diffuse: 0.72, roughness: 0.82, specular: 0.12 } } }
@@ -79,37 +110,40 @@ export function buildPlotData(object, settings = object) {
   const segments = Math.min(160, Math.max(32, density * 3))
   if (type === 'cartesian2d') {
     const { compiled } = compileExpression(expressions.y || expressions.expression || expressions, ['x', ...parameterKeys])
-    const x = sample(range.x[0], range.x[1], segments)
-    return [lineTrace(x, x.map((value) => evaluate(compiled, { x: value, ...parameterValues })), object.name || '函数', color, lineWidth)]
+    const x = domainSamples(object.domain, range.x, segments)
+    return [lineTrace(x, x.map((value) => value === null ? null : evaluate(compiled, { x: value, ...parameterValues })), object.name || '函数', color, lineWidth)]
   }
   if (type === 'parametric2d') {
     const xCompiled = compileExpression(expressions.x, ['t', ...parameterKeys]).compiled
     const yCompiled = compileExpression(expressions.y, ['t', ...parameterKeys]).compiled
-    const t = sample(range.t[0], range.t[1], segments)
-    return [lineTrace(t.map((value) => evaluate(xCompiled, { t: value, ...parameterValues })), t.map((value) => evaluate(yCompiled, { t: value, ...parameterValues })), object.name || '参数曲线', color, lineWidth)]
+    const t = domainSamples(object.domain, range.t, segments)
+    return [lineTrace(t.map((value) => value === null ? null : evaluate(xCompiled, { t: value, ...parameterValues })), t.map((value) => value === null ? null : evaluate(yCompiled, { t: value, ...parameterValues })), object.name || '参数曲线', color, lineWidth)]
   }
   if (type === 'parametric3d') {
     const compiled = ['x', 'y', 'z'].map((axis) => compileExpression(expressions[axis], ['t', ...parameterKeys]).compiled)
-    const t = sample(range.t[0], range.t[1], segments)
-    return [curve3dTrace(...compiled.map((item) => t.map((value) => evaluate(item, { t: value, ...parameterValues }))), object.name || '参数曲线', color, lineWidth)]
+    const t = domainSamples(object.domain, range.t, segments)
+    return [curve3dTrace(...compiled.map((item) => t.map((value) => value === null ? null : evaluate(item, { t: value, ...parameterValues }))), object.name || '参数曲线', color, lineWidth)]
   }
   const compiled = compileExpression(expressions.z || expressions.expression || expressions, ['x', 'y', ...parameterKeys]).compiled
-  const axisX = sample(range.x[0], range.x[1], Math.min(80, density))
-  const axisY = sample(range.y[0], range.y[1], Math.min(80, density))
+  const xIntervals = parseDomain(object.domainX, range.x)
+  const yIntervals = parseDomain(object.domainY, range.y)
+  const axisX = sample(...domainViewRange(object.domainX, range.x), Math.min(80, density))
+  const axisY = sample(...domainViewRange(object.domainY, range.y), Math.min(80, density))
   const x = axisY.map(() => [...axisX])
   const y = axisY.map((value) => axisX.map(() => value))
-  const z = axisY.map((yValue) => axisX.map((xValue) => evaluate(compiled, { x: xValue, y: yValue, ...parameterValues })))
+  const z = axisY.map((yValue) => axisX.map((xValue) => domainContains(xValue, xIntervals) && domainContains(yValue, yIntervals) ? evaluate(compiled, { x: xValue, y: yValue, ...parameterValues }) : null))
   return [surfaceTrace(x, y, z, object.name || '曲面', color, showGrid)]
 }
 
 export function objectFromExample(example, color = FUNCTION_COLORS[0]) {
   const expressions = example.type === 'cartesian2d' ? { y: example.expression } : example.type === 'surface3d' ? { z: example.expression } : example.expressions
   const parameters = Object.fromEntries(Object.entries(example.parameters || {}).map(([key, value]) => [key, { key, ...value }]))
-  return { id: example.id, name: example.name, subtitle: example.subtitle, type: example.type, expressions, parameters, range: example.range, density: 42, color, lineWidth: 2.5, showGrid: true, showAxes: true, visible: true, preset: 'academic', title: '' }
+  const domain = example.domain || (example.type.includes('parametric') ? `[${example.range.t[0]}, ${example.range.t[1]}]` : '(-∞, ∞)')
+  return { id: example.id, name: example.name, subtitle: example.subtitle, type: example.type, expressions, parameters, range: example.range, domain, domainX: example.domainX || '(-∞, ∞)', domainY: example.domainY || '(-∞, ∞)', density: 42, color, lineWidth: 2.5, showGrid: true, showAxes: true, visible: true, preset: 'academic', title: '' }
 }
 
 export function objectForType(type, index = 0) {
-  const example = type === 'cartesian2d' ? EXAMPLES.find((item) => item.id === 'sin') : type === 'parametric2d' ? { id: 'parametric', name: '新参数曲线', type, expressions: { x: 'cos(t)', y: 'sin(t)' }, subtitle: '参数曲线', range: { t: [0, 31.4] } } : type === 'surface3d' ? EXAMPLES.find((item) => item.id === 'saddle') : EXAMPLES.find((item) => item.id === 'helix')
+  const example = type === 'cartesian2d' ? { ...EXAMPLES.find((item) => item.id === 'sin'), domain: '(-∞, ∞)' } : type === 'parametric2d' ? { id: 'parametric', name: '新参数曲线', type, expressions: { x: 'cos(t)', y: 'sin(t)' }, subtitle: '参数曲线', range: { t: [0, 6.28] }, domain: '[0, 2π]' } : type === 'surface3d' ? EXAMPLES.find((item) => item.id === 'saddle') : EXAMPLES.find((item) => item.id === 'helix')
   return objectFromExample({ ...example, type }, FUNCTION_COLORS[index % FUNCTION_COLORS.length])
 }
 
