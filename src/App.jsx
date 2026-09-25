@@ -56,7 +56,7 @@ function Inspector({ object, setObject, activeTab, setActiveTab, onExport, expor
 function PaletteIcon() { return <span className="palette-dot" /> }
 function downloadText(name, text) { const blob = new Blob([text], { type: 'text/plain;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); URL.revokeObjectURL(url) }
 function localizePlotlyToolbar(graphDiv) { graphDiv.querySelectorAll('.modebar-btn').forEach((button) => { const source = button.getAttribute('data-title') || button.getAttribute('aria-label') || button.getAttribute('title'); const label = PLOTLY_TOOLTIPS[source]; if (label) { button.setAttribute('data-title', label); button.setAttribute('aria-label', label); button.setAttribute('title', label) } }) }
-function cameraForView(view = 'perspective') { const cameras = { perspective: { eye: { x: 1.55, y: 1.55, z: 1.2 }, up: { x: 0, y: 0, z: 1 } }, front: { eye: { x: 0, y: -2.4, z: 0.12 }, up: { x: 0, y: 0, z: 1 } }, back: { eye: { x: 0, y: 2.4, z: 0.12 }, up: { x: 0, y: 0, z: 1 } }, left: { eye: { x: -2.4, y: 0, z: 0.12 }, up: { x: 0, y: 0, z: 1 } }, right: { eye: { x: 2.4, y: 0, z: 0.12 }, up: { x: 0, y: 0, z: 1 } }, top: { eye: { x: 0.01, y: 0.01, z: 2.6 }, up: { x: 0, y: 1, z: 0 } }, bottom: { eye: { x: 0.01, y: 0.01, z: -2.6 }, up: { x: 0, y: -1, z: 0 } } }; return cameras[view] || cameras.perspective }
+function cameraForView(view = 'perspective') { const orthographic = { projection: { type: 'orthographic' } }; const cameras = { perspective: { eye: { x: 1.55, y: 1.55, z: 1.2 }, up: { x: 0, y: 0, z: 1 } }, front: { ...orthographic, eye: { x: 0, y: -2.8, z: 0 }, up: { x: 0, y: 0, z: 1 }, center: { x: 0, y: 0, z: 0 } }, back: { ...orthographic, eye: { x: 0, y: 2.8, z: 0 }, up: { x: 0, y: 0, z: 1 }, center: { x: 0, y: 0, z: 0 } }, left: { ...orthographic, eye: { x: -2.8, y: 0, z: 0 }, up: { x: 0, y: 0, z: 1 }, center: { x: 0, y: 0, z: 0 } }, right: { ...orthographic, eye: { x: 2.8, y: 0, z: 0 }, up: { x: 0, y: 0, z: 1 }, center: { x: 0, y: 0, z: 0 } }, top: { ...orthographic, eye: { x: 0, y: 0, z: 2.8 }, up: { x: 0, y: 1, z: 0 }, center: { x: 0, y: 0, z: 0 } }, bottom: { ...orthographic, eye: { x: 0, y: 0, z: -2.8 }, up: { x: 0, y: -1, z: 0 }, center: { x: 0, y: 0, z: 0 } } }; return cameras[view] || cameras.perspective }
 
 function initialWorkspace() {
   try {
@@ -87,9 +87,9 @@ function App() {
   const selectExample = (example) => { const next = objectFromExample(example); setWorkspaceState({ type: example.type, objects: [next], activeId: next.id }); setActiveView('perspective'); setExamplesOpen(false); setError('') }
   const updateObject = (next) => {
     const current = object
-    try { buildPlotData(next); setError('') } catch (cause) { setError(cause.message || '表达式无法解析。') }
     if (next.type !== current.type) { setWorkspaceState({ type: next.type, objects: [next], activeId: next.id }); setActiveView('perspective'); return }
     setWorkspaceState((state) => ({ ...state, objects: state.objects.map((item) => item.id === next.id ? next : item) }))
+    try { buildPlotData(next); setError('') } catch (cause) { setError(cause.message || '表达式无法解析。') }
   }
   const addObject = () => {
     const next = objectForType(object.type, objects.length)
